@@ -1,5 +1,68 @@
 import { createContext, useReducer } from "react";
 
+const DUMMY_EXPENSES = [
+  {
+    id: "e1",
+    description: "A pair of Shoe",
+    amount: 20.5,
+    date: new Date("2025-01-16"),
+  },
+  {
+    id: "e2",
+    description: "Book",
+    amount: 12.5,
+    date: new Date("2025-02-16"),
+  },
+  {
+    id: "e3",
+    description: "A laptop",
+    amount: 2000,
+    date: new Date("2024-03-16"),
+  },
+  {
+    id: "e4",
+    description: "A Keyboard",
+    amount: 35.78,
+    date: new Date("2025-04-16"),
+  },
+  {
+    id: "e5",
+    description: "Mobile Phone",
+    amount: 700.99,
+    date: new Date("2022-03-26"),
+  },
+  {
+    id: "e6",
+    description: "A pair of Shoe",
+    amount: 20.5,
+    date: new Date("2025-01-16"),
+  },
+  {
+    id: "e7",
+    description: "Book",
+    amount: 12.5,
+    date: new Date("2025-02-16"),
+  },
+  {
+    id: "e8",
+    description: "A laptop",
+    amount: 2000,
+    date: new Date("2024-03-16"),
+  },
+  {
+    id: "e9",
+    description: "A Keyboard",
+    amount: 35.78,
+    date: new Date("2025-04-16"),
+  },
+  {
+    id: "e10",
+    description: "Mobile Phone",
+    amount: 700.99,
+    date: new Date("2022-03-26"),
+  },
+];
+
 export const ExpensesContext = createContext({
   expenses: [], //An array that will hold the list of expenses.
   addExpenses: ({ description, amount, date }) => {},
@@ -45,7 +108,7 @@ function expensesReducer(state, action) {
 
 // Actual provider function which hold the actual logic
 function ExpensesContextProvider({ children }) {
-  const [expenseState, dispatch] = useReducer(expensesReducer);
+  const [expenseState, dispatch] = useReducer(expensesReducer , DUMMY_EXPENSES);  // Initially, expenseState contains the DUMMY_EXPENSES.
   // expenseState is the current state (the current list of expenses).
  // 'state' in expenseReducer function is expenseState
 
@@ -63,7 +126,14 @@ function ExpensesContextProvider({ children }) {
     dispatch({ type: "UPDATTE", payload: { id: id, data: expenseData } });
   }
 
-  return <ExpensesContext.Provider>{children}</ExpensesContext.Provider>;
+  const value = {
+    expenses : expenseState,
+    addExpense : addExpenses,
+    deleteExpense : deleteExpenses,
+    updateExpense: updateExpenses,
+  }
+// to use all the functions and data in all the components
+  return <ExpensesContext.Provider value={value}>{children}</ExpensesContext.Provider>;
 }
 
 export default ExpensesContextProvider;
