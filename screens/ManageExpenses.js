@@ -1,11 +1,13 @@
-import { useLayoutEffect } from "react";
-import { View, Text, StyleSheet } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { useContext, useLayoutEffect } from "react";
+import { View, StyleSheet } from "react-native";
 import IconButton from "../components/UI/IconButton";
 import { GlobalStyles } from "../constants/styles";
 import Button from "../components/UI/Button";
+import { ExpensesContext } from "../store/expenses-context";
 
 const ManageExpenses = ({ route, navigation }) => {
+  const expenseCtx = useContext(ExpensesContext);
+
   const editedExpenseId = route.params?.expenseId; // Get expenseId from route.params, but only if route.params exists
   //route is an object automatically provided to every screen component by React Navigation.
   //route.params holds the data that was passed to that screen.
@@ -22,7 +24,10 @@ const ManageExpenses = ({ route, navigation }) => {
   }, [navigation, isEditing]);
 
   function deleteExpenseHandler() {
-    navigation.goBack(); // go back to prevous screen from which the screen is opened , works as back button 
+    expenseCtx.deleteExpense(editedExpenseId);
+    // This triggers the deleteExpenses function inside the provider
+
+    navigation.goBack(); // go back to prevous screen from which the screen is opened , works as back button
   }
 
   function cancelHandler() {
@@ -30,6 +35,24 @@ const ManageExpenses = ({ route, navigation }) => {
   }
 
   function confirmHandler() {
+    const expenseData = {
+      description: "Test Expense",
+      amount: 20.22,
+      date: new Date("2025-05-20"),
+    };
+
+    const updatedExpenseData = {
+      description: "update Expense",
+      amount: 21.22,
+      date: new Date("2025-04-20"),
+    };
+
+    if (isEditing) {
+      expenseCtx.updateExpense(editedExpenseId, updatedExpenseData);
+    } else {
+      expenseCtx.addExpense(expenseData);
+    }
+
     navigation.goBack();
   }
 
