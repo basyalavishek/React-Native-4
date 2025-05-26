@@ -4,6 +4,7 @@ import IconButton from "../components/UI/IconButton";
 import { GlobalStyles } from "../constants/styles";
 import { ExpensesContext } from "../store/expenses-context";
 import ExpenseForm from "../components/ManageExpense/ExpenseForm";
+import { deleteExpense, storeExpense, updateExpense } from "../util/http";
 
 const ManageExpenses = ({ route, navigation }) => {
   const expenseCtx = useContext(ExpensesContext);
@@ -11,13 +12,16 @@ const ManageExpenses = ({ route, navigation }) => {
   const editedExpenseId = route.params?.expenseId; // Get expenseId from route.params, but only if route.params exists
   //route is an object automatically provided to every screen component by React Navigation.
   //route.params holds the data that was passed to that screen.
+  // in ExpenseItem.js 'expenseId' is  parameter(params) passed through react navigation
   // The optional chaining (?.) prevents the app from crashing if params is undefined
   // You can now use editedExpenseId to determine if you're editing an existing expense
   // or creating a new one.If you are editing existing expense the title will be different and if you are creating new expense the title will be different for same screen
 
   const isEditing = !!editedExpenseId; // converting value into boolean
 
-  const selectedExpense = expenseCtx.expenses.find((expense)=>expense.id === editedExpenseId )
+  const selectedExpense = expenseCtx.expenses.find(
+    (expense) => expense.id === editedExpenseId
+  );
 
   useLayoutEffect(() => {
     navigation.setOptions({
@@ -25,8 +29,9 @@ const ManageExpenses = ({ route, navigation }) => {
     });
   }, [navigation, isEditing]);
 
-  function deleteExpenseHandler() {
+  async function deleteExpenseHandler() {
     expenseCtx.deleteExpense(editedExpenseId);
+    await deleteExpense(editedExpenseId)
     // This triggers the deleteExpenses function inside the provider
 
     navigation.goBack(); // go back to prevous screen from which the screen is opened , works as back button
@@ -36,11 +41,13 @@ const ManageExpenses = ({ route, navigation }) => {
     navigation.goBack();
   }
 
-  function confirmHandler(expenseData) {
+  async function confirmHandler(expenseData) {
     if (isEditing) {
       expenseCtx.updateExpense(editedExpenseId, expenseData);
+      await updateExpense(editedExpenseId , expenseData);
     } else {
-      expenseCtx.addExpense(expenseData);
+      const id = await storeExpense(expenseData);
+      expenseCtx.addExpense({...expenseData , id:id}); // the id on right is the 'id' we got from backend and send it to addExpense function in context
     }
 
     navigation.goBack();
@@ -48,8 +55,13 @@ const ManageExpenses = ({ route, navigation }) => {
 
   return (
     <View style={styles.container}>
-      <ExpenseForm onSubmit={confirmHandler} submitButtonLabel={isEditing ? 'Update' : 'Add'} onCancel={cancelHandler} defaultValues = {selectedExpense}/>
-      
+      <ExpenseForm
+        onSubmit={confirmHandler}
+        submitButtonLabel={isEditing ? "Update" : "Add"}
+        onCancel={cancelHandler}
+        defaultValues={selectedExpense}
+      />
+
       {isEditing && (
         <View style={styles.deleteContainer}>
           <IconButton

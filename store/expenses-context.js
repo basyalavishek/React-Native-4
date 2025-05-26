@@ -1,71 +1,9 @@
 import { createContext, useReducer } from "react";
 
-const DUMMY_EXPENSES = [
-  {
-    id: "e1",
-    description: "A pair of Shoe",
-    amount: 20.5,
-    date: new Date("2025-01-16"),
-  },
-  {
-    id: "e2",
-    description: "Book",
-    amount: 12.5,
-    date: new Date("2025-02-16"),
-  },
-  {
-    id: "e3",
-    description: "A laptop",
-    amount: 2000,
-    date: new Date("2024-03-16"),
-  },
-  {
-    id: "e4",
-    description: "A Keyboard",
-    amount: 35.78,
-    date: new Date("2025-04-16"),
-  },
-  {
-    id: "e5",
-    description: "Mobile Phone",
-    amount: 700.99,
-    date: new Date("2022-03-26"),
-  },
-  {
-    id: "e6",
-    description: "A pair of Shoe",
-    amount: 20.5,
-    date: new Date("2025-01-16"),
-  },
-  {
-    id: "e7",
-    description: "Book",
-    amount: 12.5,
-    date: new Date("2025-02-16"),
-  },
-  {
-    id: "e8",
-    description: "A laptop",
-    amount: 2000,
-    date: new Date("2024-03-16"),
-  },
-  {
-    id: "e9",
-    description: "A Keyboard",
-    amount: 35.78,
-    date: new Date("2025-04-16"),
-  },
-  {
-    id: "e10",
-    description: "Mobile Phone",
-    amount: 700.99,
-    date: new Date("2022-03-26"),
-  },
-];
-
 export const ExpensesContext = createContext({
   expenses: [], //An array that will hold the list of expenses.
   addExpenses: ({ description, amount, date }) => {},
+  setExpenses: (expenses) => {},
   updateExpenses: (id) => {},
   deleteExpenses: (id, { description, amount, date }) => {},
 });
@@ -81,6 +19,11 @@ function expensesReducer(state, action) {
     case "ADD":
       const id = new Date().toString() + Math.random().toString();
       return [{ ...action.payload, id: id }, ...state];
+    case "SET":
+      // return action.payload; -> in firebase the older data is in the top and newly created are below that so to show the data in the reverse order in the database following code is used
+
+      const inverted = action.payload.reverse();
+      return inverted;
 
     case "UPDATE":
       const updatableExpenseIndex = state.findIndex(
@@ -107,7 +50,7 @@ function expensesReducer(state, action) {
 
 // Actual provider function which hold the actual logic
 function ExpensesContextProvider({ children }) {
-  const [expenseState, dispatch] = useReducer(expensesReducer, DUMMY_EXPENSES); // Initially, expenseState contains the DUMMY_EXPENSES.
+  const [expenseState, dispatch] = useReducer(expensesReducer, []); // Initially, expenseState contains empty expenses
   // expenseState is the current state (the current list of expenses).
   // 'state' in expenseReducer function is expenseState
 
@@ -115,6 +58,10 @@ function ExpensesContextProvider({ children }) {
     dispatch({ type: "ADD", payload: expenseData }); // expenseData is a single variable (usually an object) that combines the description, amount, and date
 
     // dispatch is a function you get when you use React's useReducer hook.Its job is to send ("dispatch") an action to the reducer function.The reducer then decides how to update the state based on that action.
+  }
+
+  function setExpenses(expenses) {
+    dispatch({ type: "SET", payload: expenses });
   }
 
   function deleteExpenses(id) {
@@ -128,6 +75,7 @@ function ExpensesContextProvider({ children }) {
   const value = {
     expenses: expenseState,
     addExpense: addExpenses,
+    setExpenses: setExpenses,
     deleteExpense: deleteExpenses,
     updateExpense: updateExpenses,
   };
