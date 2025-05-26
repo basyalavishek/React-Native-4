@@ -17,8 +17,7 @@ function expensesReducer(state, action) {
     action.type //The switch(action.type) looks at the type of the action and performs different logic based on it.
   ) {
     case "ADD":
-      const id = new Date().toString() + Math.random().toString();
-      return [{ ...action.payload, id: id }, ...state];
+      return [action.payload, ...state];
     case "SET":
       // return action.payload; -> in firebase the older data is in the top and newly created are below that so to show the data in the reverse order in the database following code is used
 

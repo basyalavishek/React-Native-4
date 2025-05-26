@@ -5,8 +5,12 @@ import { GlobalStyles } from "../constants/styles";
 import { ExpensesContext } from "../store/expenses-context";
 import ExpenseForm from "../components/ManageExpense/ExpenseForm";
 import { deleteExpense, storeExpense, updateExpense } from "../util/http";
+import LoadingOverlay from "../components/UI/LoadingOverlay";
+import { useState } from "react";
 
 const ManageExpenses = ({ route, navigation }) => {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   const expenseCtx = useContext(ExpensesContext);
 
   const editedExpenseId = route.params?.expenseId; // Get expenseId from route.params, but only if route.params exists
@@ -30,11 +34,17 @@ const ManageExpenses = ({ route, navigation }) => {
   }, [navigation, isEditing]);
 
   async function deleteExpenseHandler() {
-    expenseCtx.deleteExpense(editedExpenseId);
-    await deleteExpense(editedExpenseId)
-    // This triggers the deleteExpenses function inside the provider
-
-    navigation.goBack(); // go back to prevous screen from which the screen is opened , works as back button
+    setIsSubmitting(true);
+    try {
+      await deleteExpense(editedExpenseId); // Backend delete
+      expenseCtx.deleteExpense(editedExpenseId); // Local delete
+      navigation.goBack();
+    } catch (error) {
+      console.error("Failed to delete expense:", error);
+      // Optional: show error UI
+    } finally {
+      setIsSubmitting(false); // Ensure spinner stops
+    }
   }
 
   function cancelHandler() {
@@ -42,15 +52,20 @@ const ManageExpenses = ({ route, navigation }) => {
   }
 
   async function confirmHandler(expenseData) {
+    setIsSubmitting(true);
     if (isEditing) {
       expenseCtx.updateExpense(editedExpenseId, expenseData);
-      await updateExpense(editedExpenseId , expenseData);
+      await updateExpense(editedExpenseId, expenseData);
     } else {
       const id = await storeExpense(expenseData);
-      expenseCtx.addExpense({...expenseData , id:id}); // the id on right is the 'id' we got from backend and send it to addExpense function in context
+      expenseCtx.addExpense({ ...expenseData, id: id }); // the id on right is the 'id' we got from backend and send it to addExpense function in context
     }
 
     navigation.goBack();
+  }
+
+  if (isSubmitting) {
+    return <LoadingOverlay />;
   }
 
   return (

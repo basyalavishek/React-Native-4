@@ -1,21 +1,31 @@
 import ExpensesOutput from "../components/expenses/ExpensesOutput";
-import { useContext, useEffect } from "react";
+import { useContext, useEffect, useState } from "react";
 import { ExpensesContext } from "../store/expenses-context";
 import { getMinusDays } from "../util/date";
 import { fetchExpenses } from "../util/http";
+import LoadingOverlay from "../components/UI/LoadingOverlay";
 
 const RecentExpenses = () => {
+
+  const [isFetching , setIsFetching] = useState(true)
+
   const expensesCtx = useContext(ExpensesContext);
 
   useEffect(() => {
     async function getExpenses() {
+      setIsFetching(true)
       const expenses = await fetchExpenses();
+      setIsFetching(false)
       expensesCtx.setExpenses(expenses)
     }
     getExpenses();
   }, []);
 
   // to get the expenses from recent 7 days
+
+  if (isFetching){
+    return<LoadingOverlay/>
+  }
 
   const recentExpenses = expensesCtx.expenses.filter((expense) => {
     const today = new Date();
