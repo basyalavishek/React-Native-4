@@ -7,9 +7,11 @@ import ExpenseForm from "../components/ManageExpense/ExpenseForm";
 import { deleteExpense, storeExpense, updateExpense } from "../util/http";
 import LoadingOverlay from "../components/UI/LoadingOverlay";
 import { useState } from "react";
+import ErrorOverlay from "../components/UI/ErrorOverlay";
 
 const ManageExpenses = ({ route, navigation }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState();
 
   const expenseCtx = useContext(ExpensesContext);
 
@@ -40,8 +42,7 @@ const ManageExpenses = ({ route, navigation }) => {
       expenseCtx.deleteExpense(editedExpenseId); // Local delete
       navigation.goBack();
     } catch (error) {
-      console.error("Failed to delete expense:", error);
-      // Optional: show error UI
+      setError("Failed to delete expense , please try again later");
     } finally {
       setIsSubmitting(false); // Ensure spinner stops
     }
@@ -53,15 +54,23 @@ const ManageExpenses = ({ route, navigation }) => {
 
   async function confirmHandler(expenseData) {
     setIsSubmitting(true);
-    if (isEditing) {
-      expenseCtx.updateExpense(editedExpenseId, expenseData);
-      await updateExpense(editedExpenseId, expenseData);
-    } else {
-      const id = await storeExpense(expenseData);
-      expenseCtx.addExpense({ ...expenseData, id: id }); // the id on right is the 'id' we got from backend and send it to addExpense function in context
+    try {
+      if (isEditing) {
+        expenseCtx.updateExpense(editedExpenseId, expenseData);
+        await updateExpense(editedExpenseId, expenseData);
+      } else {
+        const id = await storeExpense(expenseData);
+        expenseCtx.addExpense({ ...expenseData, id: id }); // the id on right is the 'id' we got from backend and send it to addExpense function in context
+      }
+      navigation.goBack();
+    } catch (error){
+      setError('Could not save data -- please try again later!')
+      setIsSubmitting(false);
     }
+  }
 
-    navigation.goBack();
+  if (error && !isSubmitting) {
+    return <ErrorOverlay message={error} />;
   }
 
   if (isSubmitting) {

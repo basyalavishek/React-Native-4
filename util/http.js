@@ -5,11 +5,14 @@ const FIREBASE_URL =
 // The .json is required by Firebase when you're using the REST API and 'expenses' is the path
 
 export async function storeExpense(expenseData) {
-  const response = await axios.post(FIREBASE_URL + "/expenses.json", expenseData);
+  const response = await axios.post(
+    FIREBASE_URL + "/expenses.json",
+    expenseData
+  );
   // expenseData is the data we want to post to this url
-  
-  const id = response.data.name // in firebase the id is accessed as 'name'
-  return id
+
+  const id = response.data.name; // in firebase the id is accessed as 'name'
+  return id;
 }
 
 export async function fetchExpenses() {
@@ -29,10 +32,10 @@ export async function fetchExpenses() {
   // The purpose of return expenses; is to send the list of expenses back to the place where the fetchExpenses function was called.
 }
 
-export function updateExpense(id , expenseData){
-  return  axios.put(FIREBASE_URL + `/expenses/${id}.json` , expenseData)
+export function updateExpense(id, expenseData) {
+  return axios.put(FIREBASE_URL + `/expenses/${id}.json`, expenseData);
 }
 
-export function deleteExpense(id){
- return axios.delete(FIREBASE_URL + `/expenses/${id}.json`)
+export function deleteExpense(id) {
+  return axios.delete(FIREBASE_URL + `/expenses/${id}.json`);
 }
